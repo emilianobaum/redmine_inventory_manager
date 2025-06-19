@@ -510,7 +510,7 @@ class InventoryController < ApplicationController
     @inventory_warehouse = InventoryWarehouse.new
     @users = User.where('status=1').order('lastname ASC, firstname ASC').map{|u| [u.lastname+" "+u.firstname, u.id]}
     #@has_permission = find_current_user.admin?
-    @has_permission = User.current.allowed_to?#(:manage_inventory_providors, nil, global: true)
+    @has_permission = User.current.allowed_to?(:manage_inventory_warehouses, nil, global: true)
 
     if params[:delete] or params[:edit] or params[:inventory_warehouse]
       if @has_permission

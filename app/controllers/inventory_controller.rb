@@ -248,7 +248,8 @@ class InventoryController < ApplicationController
     @to_options = {l('User') => 'user_to_id', l('Project') => 'project_id'}
     @doc_types = { l('invoice') => 1, l('ticket') => 2, l('proforma-invoice') => 3, l("waybill") => 4, l("inventory") => 5}
     current_user = find_current_user
-    @has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    #@has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    @has_permission = User.current.allowed_to?(:manage_inventory_movements, nil, global: true)
     
     unless params[:from_options]
       params[:from_options] = 'user_from_id'
@@ -385,7 +386,9 @@ class InventoryController < ApplicationController
   def categories
     @inventory_category = InventoryCategory.new
     current_user = find_current_user
-    @has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    #@has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    @has_permission = User.current.allowed_to?(:manage_inventory_categories, nil, global: true)
+
     
     if params[:delete] or params[:edit] or params[:inventory_category]
       if @has_permission
@@ -428,7 +431,9 @@ class InventoryController < ApplicationController
     @statuses = { l('active') => 1, l("obsolet") => 2, l('discontinued') => 3}
     @statuses_array = ['',l('active'),l("obsolet"),l('discontinued')]
     current_user = find_current_user
-    @has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    #@has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    @has_permission = User.current.allowed_to?(:manage_inventory_parts, nil, global: true)
+
     if params[:delete] or params[:edit] or params[:inventory_part]
       if @has_permission
     
@@ -464,7 +469,9 @@ class InventoryController < ApplicationController
   def providors
     @inventory_providor = InventoryProvidor.new
     current_user = find_current_user
-    @has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    #@has_permission = current_user.admin? || user_has_warehouse_permission(current_user.id, nil)
+    @has_permission = User.current.allowed_to?(:manage_inventory_providors, nil, global: true)
+
     if params[:delete] or params[:edit] or params[:inventory_providor]
       if @has_permission
         
@@ -502,7 +509,9 @@ class InventoryController < ApplicationController
   def warehouses
     @inventory_warehouse = InventoryWarehouse.new
     @users = User.where('status=1').order('lastname ASC, firstname ASC').map{|u| [u.lastname+" "+u.firstname, u.id]}
-    @has_permission = find_current_user.admin?
+    #@has_permission = find_current_user.admin?
+    @has_permission = User.current.allowed_to?#(:manage_inventory_providors, nil, global: true)
+
     if params[:delete] or params[:edit] or params[:inventory_warehouse]
       if @has_permission
         if params[:delete]

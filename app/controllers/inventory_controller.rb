@@ -1,8 +1,6 @@
 require 'csv'
 class InventoryController < ApplicationController
 
-	unloadable
-
   def reports
     @warehouses = InventoryWarehouse.order("name ASC").all.map {|w| [w.name, w.id]}
     @warehouses += [l('all_warehouses')]
@@ -74,8 +72,7 @@ class InventoryController < ApplicationController
   end
   
   def get_stock(warehouse_query)
-    sql = ActiveRecord::Base.connection()
-    @stock = sql.execute(
+    @stock = ActiveRecord::Base.connection.execute(
     "SELECT in_movements.part_number as part_number,
     	in_movements.serial_number as serial_number, in_movements.category as category,
     	in_movements.part_description as description, in_movements.value,
@@ -170,7 +167,7 @@ class InventoryController < ApplicationController
         out =  part.value.to_s
       end
     end
-    render :text => out
+    render plain: out
   end
   
   def ajax_get_part_info
@@ -180,7 +177,7 @@ class InventoryController < ApplicationController
         out =  part.to_json
       end
     end
-    render :json => out
+    render json: out
   end
 
   def check_available_stock(movement)
@@ -191,8 +188,7 @@ class InventoryController < ApplicationController
     unless movement.serial_number.blank?
       add << " AND `inventory_movements`.`serial_number` = '#{movement.serial_number}'"
     end
-    sql = ActiveRecord::Base.connection()
-    @stock = sql.select_one("SELECT in_movements.part_number as part_number,
+    @stock = ActiveRecord::Base.connection.select_one("SELECT in_movements.part_number as part_number,
           in_movements.serial_number as serial_number,
           in_movements.value,
           IFNULL(in_movements.quantity,0) as input,
@@ -226,11 +222,11 @@ class InventoryController < ApplicationController
 
   def user_has_warehouse_permission(user_id, warehouse_id)
     if warehouse_id == nil
-      if InventoryWarehouse.count(:conditions => "user_manager_id = " + user_id.to_s) > 0
+      if InventoryWarehouse.where("user_manager_id = ?", user_id).count > 0
         return true
       end
     else
-      if InventoryWarehouse.count(:conditions => ["user_manager_id = "+user_id.to_s+" and id = "+warehouse_id.to_s]) > 0
+      if InventoryWarehouse.where("user_manager_id = ? and id = ?", user_id, warehouse_id).count > 0
         return true
       end
     end

@@ -1,12 +1,8 @@
-class CreateInventoryCategories < ActiveRecord::Migration
-  def self.up
+class CreateInventoryCategories < ActiveRecord::Migration[7.0]
+  def change
     create_table :inventory_categories do |t|
-      t.column :name, :string
-      t.column :description, :text
+      t.string :name
+      t.text :description
     end
-  end
-
-  def self.down
-    drop_table :inventory_categories
   end
 end

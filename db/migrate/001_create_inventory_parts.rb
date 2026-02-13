@@ -1,16 +1,12 @@
-class CreateInventoryParts < ActiveRecord::Migration
-  def self.up
+class CreateInventoryParts < ActiveRecord::Migration[7.0]
+  def change
     create_table :inventory_parts do |t|
-      t.column :part_number, :string
-      t.column :manufacturer, :string
-      t.column :inventory_category_id, :integer
-      t.column :description, :text
-      t.column :value, :float
-      t.column :status, :integer
+      t.string :part_number
+      t.string :manufacturer
+      t.integer :inventory_category_id
+      t.text :description
+      t.float :value
+      t.integer :status
     end
-  end
-
-  def self.down
-    drop_table :inventory_parts
   end
 end

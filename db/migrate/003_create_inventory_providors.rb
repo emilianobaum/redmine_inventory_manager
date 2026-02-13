@@ -1,24 +1,20 @@
-class CreateInventoryProvidors < ActiveRecord::Migration
-  def self.up
+class CreateInventoryProvidors < ActiveRecord::Migration[7.0]
+  def change
     create_table :inventory_providors do |t|
-      t.column :identification, :string
-      t.column :name, :string
-      t.column :address0, :string
-      t.column :address1, :string
-      t.column :city, :string
-      t.column :state, :string
-      t.column :country, :string
-      t.column :phone0, :string
-      t.column :phone1, :string
-      t.column :fax, :string
-      t.column :business, :string
-      t.column :email, :string
-      t.column :contact0, :string
-      t.column :contact1, :string
+      t.string :identification
+      t.string :name
+      t.string :address0
+      t.string :address1
+      t.string :city
+      t.string :state
+      t.string :country
+      t.string :phone0
+      t.string :phone1
+      t.string :fax
+      t.string :business
+      t.string :email
+      t.string :contact0
+      t.string :contact1
     end
-  end
-
-  def self.down
-    drop_table :inventory_providors
   end
 end

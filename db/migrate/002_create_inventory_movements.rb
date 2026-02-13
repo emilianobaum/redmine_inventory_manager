@@ -1,20 +1,16 @@
-class CreateInventoryMovements < ActiveRecord::Migration
-  def self.up
+class CreateInventoryMovements < ActiveRecord::Migration[7.0]
+  def change
     create_table :inventory_movements do |t|
-      t.column :inventory_part_id, :integer
-      t.column :quantity, :float
-      t.column :document, :string
-      t.column :document_type, :integer
-      t.column :value, :float
-      t.column :inventory_providor_id, :integer
-      t.column :project_id, :string
-      t.column :other_destiny, :string
-      t.column :date, :datetime
-      t.column :user_id, :integer
+      t.integer :inventory_part_id
+      t.float :quantity
+      t.string :document
+      t.integer :document_type
+      t.float :value
+      t.integer :inventory_providor_id
+      t.string :project_id
+      t.string :other_destiny
+      t.datetime :date
+      t.integer :user_id
     end
-  end
-
-  def self.down
-    drop_table :inventory_movements
   end
 end

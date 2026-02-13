@@ -1,12 +1,8 @@
-class CreateInventoryWarehouses < ActiveRecord::Migration
-  def self.up
+class CreateInventoryWarehouses < ActiveRecord::Migration[7.0]
+  def change
     create_table :inventory_warehouses do |t|
-      t.column :name, :string
-      t.column :location, :string
+      t.string :name
+      t.string :location
     end
-  end
-
-  def self.down
-    drop_table :inventory_warehouses
   end
 end

@@ -12,6 +12,8 @@ Este plugin ahora permite asignar permisos granulares a diferentes roles de usua
 ### 2. Gestionar movimientos de inventario (manage_inventory_movements)
 - Permite crear, editar y eliminar movimientos de entrada y salida
 - Permite registrar transferencias entre bodegas
+- Permite mover productos desde proveedores a bodegas
+- **No requiere** ser administrador de la bodega específica
 
 ### 3. Gestionar productos (manage_inventory_parts)
 - Permite crear, editar y eliminar productos del inventario
@@ -54,3 +56,5 @@ Este plugin ahora permite asignar permisos granulares a diferentes roles de usua
 - Los permisos son globales (no están asociados a proyectos específicos)
 - Debes reiniciar Redmine después de instalar o actualizar el plugin
 - Los administradores de Redmine siempre tienen acceso completo
+- **Importante**: El permiso "Gestionar movimientos" permite trabajar con todas las bodegas, independientemente de quién sea el administrador de cada bodega
+- El campo "Administrador de Bodega" en la configuración de bodegas es informativo, pero no restringe los movimientos

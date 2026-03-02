@@ -256,16 +256,16 @@ class InventoryController < ApplicationController
     end
     
     if params[:delete]
-      mdel = InventoryMovement.find(params[:delete]) rescue false
-      if mdel
-        if current_user.admin? or user_has_warehouse_permission(current_user.id, (mdel.warehouse_from_id != nil ? mdel.warehouse_from_id : 0)) or user_has_warehouse_permission(current_user.id, (mdel.warehouse_to_id != nil ? mdel.warehouse_to_id : 0))
+      if @has_permission
+        mdel = InventoryMovement.find(params[:delete]) rescue false
+        if mdel
           ok = InventoryMovement.delete(mdel) rescue false
           unless ok
             flash[:error] = l('cant_delete_register')
           end
-        else
-          flash[:error] = l('permission_denied')
         end
+      else
+        flash[:error] = l('permission_denied')
       end
     end
     
@@ -283,7 +283,7 @@ class InventoryController < ApplicationController
     end
     
     if params[:inventory_in_movement]
-      if current_user.admin? or (user_has_warehouse_permission(current_user.id, params[:inventory_in_movement][:warehouse_to_id]) and (@inventory_in_movement.warehouse_to_id == nil ? true : user_has_warehouse_permission(current_user.id, @inventory_in_movement.warehouse_to_id)))
+      if @has_permission
         unless params[:edit_in]
           @inventory_in_movement = InventoryMovement.new(params[:inventory_in_movement].permit!)
           
@@ -333,8 +333,7 @@ class InventoryController < ApplicationController
     end
     
     if params[:inventory_out_movement]
-      if current_user.admin? or (user_has_warehouse_permission(current_user.id, params[:inventory_out_movement][:warehouse_from_id]) and 
-      (@inventory_out_movement.warehouse_from_id == nil ? true : user_has_warehouse_permission(current_user.id, @inventory_out_movement.warehouse_from_id)))
+      if @has_permission
         unless params[:edit_out]
           @inventory_out_movement = InventoryMovement.new(params[:inventory_out_movement].permit!)
           available_stock = check_available_stock(@inventory_out_movement)

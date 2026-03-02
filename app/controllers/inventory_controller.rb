@@ -291,7 +291,7 @@ class InventoryController < ApplicationController
           stock_ok = true
           if @inventory_in_movement.warehouse_from_id
           	available_stock = check_available_stock(@inventory_in_movement)
-          	if @inventory_in_movement.quantity and @inventory_in_movement.quantity <= available_stock
+          	if @inventory_in_movement.quantity and @inventory_in_movement.quantity > available_stock
           		stock_ok = false
           	end
           end

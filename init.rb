@@ -5,10 +5,11 @@ Redmine::Plugin.register :redmine_inventory_manager do
   version '0.9'
   url 'https://github.com/danielanguita/Redmine-Inventory-Manager'
 
-  # permission :inventory, {:inventory => [:index, :movements, :categories, :parts, :warehouses, :providors]}, :public => false
-
-  permission :view_inventory, {:inventory => [:index, :movements]}
-  permission :manage_inventory_parts, {:inventory => [:parts, :categories, :warehouses]}
+  permission :view_inventory, {:inventory => [:index, :reports, :report_export, :inventory_stock_xls, :ajax_get_part_value, :ajax_get_part_info]}
+  permission :manage_inventory_movements, {:inventory => [:movements]}
+  permission :manage_inventory_parts, {:inventory => [:parts]}
+  permission :manage_inventory_categories, {:inventory => [:categories]}
+  permission :manage_inventory_warehouses, {:inventory => [:warehouses]}
   permission :manage_inventory_providors, {:inventory => [:providors]}
 
   menu :top_menu, :inventory, { :controller => 'inventory', :action => 'index' }, { :caption => 'Inventory', :before => 'admin'}

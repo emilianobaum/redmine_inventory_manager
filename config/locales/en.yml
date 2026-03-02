@@ -79,3 +79,9 @@
   obsolet: Obsolet
   discontinued: Discontinued
   inventory_inputs_document_report: In Movements w/Buying Documents
+  permission_view_inventory: View inventory
+  permission_manage_inventory_movements: Manage inventory movements
+  permission_manage_inventory_parts: Manage products
+  permission_manage_inventory_categories: Manage categories
+  permission_manage_inventory_warehouses: Manage warehouses
+  permission_manage_inventory_providors: Manage providors

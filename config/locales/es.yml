@@ -80,3 +80,9 @@
   export: Exportar
   reports: Informes
   inventory_inputs_document_report: Entradas c/Documentos de Compra
+  permission_view_inventory: Ver inventario
+  permission_manage_inventory_movements: Gestionar movimientos de inventario
+  permission_manage_inventory_parts: Gestionar productos
+  permission_manage_inventory_categories: Gestionar categorías
+  permission_manage_inventory_warehouses: Gestionar bodegas
+  permission_manage_inventory_providors: Gestionar proveedores

@@ -11,17 +11,13 @@ class InventoryController < ApplicationController
   end
   
   def report_export
-    unless params[:id]
-      params[:id] = nil
-    end
+    return unless params[:id]
     
     add = ""
-    unless params[:warehouse]
-      params[:warehouse] = l('all_warehouses')
-    end
+    params[:warehouse] ||= l('all_warehouses')
     
     if params[:warehouse] != l('all_warehouses')
-      add = " AND warehouse_to_id = #{params[:warehouse]}"
+      add = " AND warehouse_to_id = #{params[:warehouse].to_i}"
     else
       add = " AND warehouse_to_id is not null"
     end
@@ -33,22 +29,27 @@ class InventoryController < ApplicationController
         l(:field_serial_number), l(:field_squantity), l(:field_value),l(:total),l(:Date)]
       fields = []
       @movements.each do |m|
-        from = nil
-        if m.user_from_id
-          from = User.find(m.user_from_id).login
-        elsif m.inventory_providor
-          from = m.inventory_providor.name
-        elsif m.warehouse_from_id
-          from = InventoryWarehouse.find(m.warehouse_from_id).name
+        begin
+          from = nil
+          if m.user_from_id
+            user = User.find_by(id: m.user_from_id)
+            from = user&.login
+          elsif m.inventory_providor
+            from = m.inventory_providor.name
+          elsif m.warehouse_from_id
+            warehouse = InventoryWarehouse.find_by(id: m.warehouse_from_id)
+            from = warehouse&.name
+          end
+          total = (m.quantity.to_f * m.value.to_f) rescue 0
+          category = m.inventory_part&.inventory_category&.name || ''
+          part_number = m.inventory_part&.part_number || ''
+          fields << [from, m.document, m.doctype, category, part_number, m.serial_number, m.quantity, m.value, total, m.date]
+        rescue => e
+          Rails.logger.error "Error processing movement #{m.id}: #{e.message}"
         end
-        total = (m.quantity * m.value rescue 0)
-        fields << [from, m.document, m.doctype, m.inventory_part.inventory_category.name, m.inventory_part.part_number, m.serial_number, m.quantity, m.value, total, m.date]
       end
       
-      arrays = []
-      arrays[0] = headers
-      arrays[1] = fields
-        
+      arrays = [headers, fields]
       send_data(to_csv(arrays), :type => 'text/csv; header=present', :filename => 'in_movements_doc.csv')
     end
   end  
@@ -59,16 +60,19 @@ class InventoryController < ApplicationController
     @warehouses += [l('all_warehouses')]
     
     add = ""
-    unless params[:warehouse]
-      params[:warehouse] = l('all_warehouses')
-    end
+    params[:warehouse] ||= l('all_warehouses')
     
     if params[:warehouse] != l('all_warehouses')
-      add = " AND (`inventory_movements`.`warehouse_from_id` = #{params[:warehouse]} OR " +
-            "`inventory_movements`.`warehouse_to_id` = #{params[:warehouse]})"
-      params[:warehouse] = params[:warehouse].to_i
+      warehouse_id = params[:warehouse].to_i
+      add = " AND (`inventory_movements`.`warehouse_from_id` = #{warehouse_id} OR " +
+            "`inventory_movements`.`warehouse_to_id` = #{warehouse_id})"
+      params[:warehouse] = warehouse_id
     end
     @stock = get_stock(add)
+  rescue => e
+    Rails.logger.error "Error in index: #{e.message}"
+    flash[:error] = "Error al cargar el inventario"
+    @stock = []
   end
   
   def get_stock(warehouse_query)
@@ -163,31 +167,38 @@ class InventoryController < ApplicationController
   def ajax_get_part_value
     out = ''
     if params[:part_id]
-      if part = InventoryPart.find(params[:part_id])
-        out =  part.value.to_s
-      end
+      part = InventoryPart.find_by(id: params[:part_id])
+      out = part.value.to_s if part
     end
     render plain: out
+  rescue => e
+    Rails.logger.error "Error in ajax_get_part_value: #{e.message}"
+    render plain: ''
   end
   
   def ajax_get_part_info
     out = []
     if params[:part_number]
-      if part = InventoryPart.where("part_number = '"+params[:part_number]+"'").first
-        out =  part.to_json
-      end
+      part = InventoryPart.where("part_number = ?", params[:part_number]).first
+      out = part.to_json if part
     end
     render json: out
+  rescue => e
+    Rails.logger.error "Error in ajax_get_part_info: #{e.message}"
+    render json: []
   end
 
   def check_available_stock(movement)
-    add = " AND (`inventory_movements`.`warehouse_from_id` = #{movement.warehouse_from_id} OR " +
-            "`inventory_movements`.`warehouse_to_id` = #{movement.warehouse_from_id}) AND
-            `inventory_movements`.`inventory_part_id` = #{movement.inventory_part_id}"
+    return 0 unless movement.warehouse_from_id && movement.inventory_part_id
+    
+    add = " AND (`inventory_movements`.`warehouse_from_id` = #{movement.warehouse_from_id.to_i} OR " +
+            "`inventory_movements`.`warehouse_to_id` = #{movement.warehouse_from_id.to_i}) AND
+            `inventory_movements`.`inventory_part_id` = #{movement.inventory_part_id.to_i}"
     
     unless movement.serial_number.blank?
-      add << " AND `inventory_movements`.`serial_number` = '#{movement.serial_number}'"
+      add << " AND `inventory_movements`.`serial_number` = #{ActiveRecord::Base.connection.quote(movement.serial_number)}"
     end
+    
     @stock = ActiveRecord::Base.connection.select_one("SELECT in_movements.part_number as part_number,
           in_movements.serial_number as serial_number,
           in_movements.value,
@@ -217,7 +228,10 @@ class InventoryController < ApplicationController
               ON
                 (out_movements.part_number = in_movements.part_number
                 AND out_movements.serial_number = in_movements.serial_number);")
-    return @stock['stock'].to_f #rescue 0
+    return @stock ? @stock['stock'].to_f : 0
+  rescue => e
+    Rails.logger.error "Error in check_available_stock: #{e.message}"
+    return 0
   end
 
   def user_has_warehouse_permission(user_id, warehouse_id)
@@ -257,7 +271,7 @@ class InventoryController < ApplicationController
     
     if params[:delete]
       if @has_permission
-        mdel = InventoryMovement.find(params[:delete]) rescue false
+        mdel = InventoryMovement.find_by(id: params[:delete])
         if mdel
           ok = InventoryMovement.delete(mdel) rescue false
           unless ok
@@ -270,13 +284,17 @@ class InventoryController < ApplicationController
     end
     
     if params[:edit_in]
-      @inventory_in_movement = InventoryMovement.find(params[:edit_in])
-      if @inventory_in_movement.user_from_id
-        params[:from_options] = 'user_from_id'
-      elsif @inventory_in_movement.inventory_providor
-        params[:from_options] = 'inventory_providor_id'
-      elsif @inventory_in_movement.warehouse_from_id
-        params[:from_options] = 'warehouse_from_id'
+      @inventory_in_movement = InventoryMovement.find_by(id: params[:edit_in])
+      if @inventory_in_movement
+        if @inventory_in_movement.user_from_id
+          params[:from_options] = 'user_from_id'
+        elsif @inventory_in_movement.inventory_providor
+          params[:from_options] = 'inventory_providor_id'
+        elsif @inventory_in_movement.warehouse_from_id
+          params[:from_options] = 'warehouse_from_id'
+        end
+      else
+        @inventory_in_movement = InventoryMovement.new
       end
     else
       @inventory_in_movement = InventoryMovement.new
@@ -322,11 +340,15 @@ class InventoryController < ApplicationController
     end
     
     if params[:edit_out]
-      @inventory_out_movement = InventoryMovement.find(params[:edit_out])
-      if @inventory_out_movement.user_from_id
-        params[:to_options] = 'user_to_id'
-      elsif @inventory_out_movement.inventory_providor
-        params[:to_options] = 'project_id'
+      @inventory_out_movement = InventoryMovement.find_by(id: params[:edit_out])
+      if @inventory_out_movement
+        if @inventory_out_movement.user_from_id
+          params[:to_options] = 'user_to_id'
+        elsif @inventory_out_movement.inventory_providor
+          params[:to_options] = 'project_id'
+        end
+      else
+        @inventory_out_movement = InventoryMovement.new
       end
     else
       @inventory_out_movement = InventoryMovement.new
@@ -396,7 +418,7 @@ class InventoryController < ApplicationController
         end
         
         if params[:edit]
-          @inventory_category = InventoryCategory.find(params[:edit])
+          @inventory_category = InventoryCategory.find_by(id: params[:edit]) || InventoryCategory.new
         else
           @inventory_category = InventoryCategory.new
         end
@@ -440,7 +462,7 @@ class InventoryController < ApplicationController
         end
         
         if params[:edit]
-          @inventory_part = InventoryPart.find(params[:edit])
+          @inventory_part = InventoryPart.find_by(id: params[:edit]) || InventoryPart.new
         else
           @inventory_part = InventoryPart.new
         end
@@ -478,7 +500,7 @@ class InventoryController < ApplicationController
         end
         
         if params[:edit]
-          @inventory_providor = InventoryProvidor.find(params[:edit])
+          @inventory_providor = InventoryProvidor.find_by(id: params[:edit]) || InventoryProvidor.new
         else
           @inventory_providor = InventoryProvidor.new
         end
@@ -517,7 +539,7 @@ class InventoryController < ApplicationController
         end
         
         if params[:edit]
-          @inventory_warehouse = InventoryWarehouse.find(params[:edit])
+          @inventory_warehouse = InventoryWarehouse.find_by(id: params[:edit]) || InventoryWarehouse.new
         else
           @inventory_warehouse = InventoryWarehouse.new
         end

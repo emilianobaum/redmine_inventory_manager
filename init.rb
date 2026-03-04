@@ -1,6 +1,6 @@
 Redmine::Plugin.register :redmine_inventory_manager do
   name 'Redmine Inventory Manager Plugin'
-  author 'Daniel Anguita O./Emiliano Baum'  
+  author 'Daniel Anguita O./ Emiliano A. Baum'  
   description 'Take your warehouse or office inventory on the same platform of your projects'
   version '1'
   url 'git@github.com:emilianobaum/redmine_inventory_manager.git'

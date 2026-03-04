@@ -1,10 +1,12 @@
 #### THIS PLUG IS IN DEVELOPMENT. IF YOU NEED ANY FUNCTIONALITY RELATED TO THIS PLUGIN ADD IT IN THE ISSUES
 
-Updated for redmine 5.0
+Updated for redmine 6.1
 
 *Description*
   Take your warehouse or office inventory on the same platform of your projects. 
   If you want a feature you can add issue. 
+  Manage permissions according to the roles defined in Redmine.
+  Update stock levels whenever there is a movement.
 
 *Instalation*
   1.- Install Redmine (http://www.redmine.org/wiki/1/RedmineInstall)
@@ -23,3 +25,4 @@ Updated for redmine 5.0
   - Daniel Anguita @danielanguita
   - Imanol Alvarez @w0www
   - bluenevus @bluenevus
+  - Emiliano Baum @emilianobaum

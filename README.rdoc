@@ -1,5 +1,3 @@
-#### THIS PLUG IS IN DEVELOPMENT. IF YOU NEED ANY FUNCTIONALITY RELATED TO THIS PLUGIN ADD IT IN THE ISSUES
-
 Updated for redmine 6.1
 
 *Description*
@@ -26,3 +24,4 @@ Updated for redmine 6.1
   - Imanol Alvarez @w0www
   - bluenevus @bluenevus
   - Emiliano Baum @emilianobaum
+
